@@ -1,8 +1,8 @@
-export default function initItemsController(db) {
+export default function initTablePlayerController(db) {
   const index = async (request, response) => {
     try {
-      const items = await db.Item.findAll();
-      response.send({ items });
+      const tablePlayer = await db.TablePlayer.findAll();
+      response.send({ tablePlayer });
     } catch (error) {
       console.log(error);
     }

@@ -1,8 +1,8 @@
-export default function initItemsController(db) {
+export default function initTableInfoController(db) {
   const index = async (request, response) => {
     try {
-      const items = await db.Item.findAll();
-      response.send({ items });
+      const tableInfo = await db.TableInfo.findAll();
+      response.send({ tableInfo });
     } catch (error) {
       console.log(error);
     }

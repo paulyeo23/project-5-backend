@@ -1,8 +1,8 @@
-export default function initItemsController(db) {
+export default function initPlayerHandController(db) {
   const index = async (request, response) => {
     try {
-      const items = await db.Item.findAll();
-      response.send({ items });
+      const playerHand = await db.PlayerHand.findAll();
+      response.send({ playerHand });
     } catch (error) {
       console.log(error);
     }
