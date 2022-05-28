@@ -1,6 +1,6 @@
-export default  function initTablePlayerModel  (sequelize, DataTypes)  {
+export default function initTablePlayerModel(sequelize, DataTypes) {
   return sequelize.define(
-    "tablePlayer",
+    "tablePlayers",
     {
       handid: {
         allowNull: false,
@@ -12,7 +12,7 @@ export default  function initTablePlayerModel  (sequelize, DataTypes)  {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: "tableinfo",
+          model: "tableinfos",
           key: "roundid",
         },
       },
@@ -24,17 +24,34 @@ export default  function initTablePlayerModel  (sequelize, DataTypes)  {
           key: "id",
         },
       },
-      deck: {
-        allowNull: false,
-        type: DataTypes.FLOAT,
-      },
-      deckPosition: {
+      tablePosition: {
         allowNull: false,
         type: DataTypes.INTEGER,
+      },
+      check: {
+        allowNull: false,
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      folded: {
+        allowNull: false,
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      stack: {
+        allowNull: false,
+        type: DataTypes.FLOAT,
+        defaultValue: false,
+      },
+      called: {
+        type: DataTypes.FLOAT,
+      },
+      allIn: {
+        type: DataTypes.BOOLEAN,
       },
     },
     {
       timestamps: false,
     },
   );
-};
+}

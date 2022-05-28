@@ -1,18 +1,18 @@
 export default function initDeckModel(sequelize, DataTypes) {
   return sequelize.define(
-    "deck",
+    "decks",
     {
       roundid: {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: "tableinfo",
+          model: "tableinfos",
           key: "roundid",
         },
       },
       deck: {
         allowNull: false,
-        type: DataTypes.FLOAT,
+        type: DataTypes.STRING,
       },
       deckPosition: {
         allowNull: false,

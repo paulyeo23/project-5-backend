@@ -3,13 +3,11 @@ import db from "./models/index.mjs";
 
 // import initItemsController from './controllers/items.mjs';
 // import initOrdersController from './controllers/orders.mjs';
-import initDeckController from "./controllers/deck.mjs";
-import initPlayerHandController from "./controllers/playerHand.mjs";
+
 import initTableInfoController from "./controllers/tableInfo.mjs";
-import initTablePlayerController from "./controllers/tablePlayer.mjs";
-import initTablesController from "./controllers/tables.mjs";
-import initTransactionsController from "./controllers/transactions.mjs";
 import initUsersController from "./controllers/users.mjs";
+import initPokerCheck from "./controllers/pokerCheck.mjs";
+import initPokerMechanicsController from "./controllers/pokermechanics.mjs";
 
 export default function routes(app) {
   // const OrdersController = initOrdersController(db);
@@ -19,32 +17,24 @@ export default function routes(app) {
   // const ItemsController = initItemsController(db);
   // app.get('/items', ItemsController.index);
 
-  const DeckController = initDeckController(db);
-  app.get("/deck", DeckController.index);
-
-  const PlayerHandController = initPlayerHandController(db);
-  app.get("/playerhand", PlayerHandController.index);
-
   const TableInfoController = initTableInfoController(db);
   app.get("/tableinfo", TableInfoController.index);
 
-  const TablePlayerController = initTablePlayerController(db);
-  app.get("/tableplayer", TablePlayerController.index);
-
-  const TablesController = initTablesController(db);
-  app.get("/tables", TablesController.index);
-
-  const TransactionsController = initTransactionsController(db);
-  app.get("/transactions", TransactionsController.index);
+  const PokerMechanicsController = initPokerMechanicsController(db);
+  app.get(
+    "/tableinfo/check/:roundid/:tableid/:userid",
+    PokerMechanicsController.checkplayer,
+  );
 
   const UsersController = initUsersController(db);
   app.get("/users", UsersController.index);
-  app.post("/login", UsersController.login)
-    // function (request, response) {
-    // let data = request.body;
-    // let username = data.username;
-    // let password = data.password;
-    // console.log(username, password);
+  app.post("/login", UsersController.login);
+  app.post("/register", UsersController.register);
+  // function (request, response) {
+  // let data = request.body;
+  // let username = data.username;
+  // let password = data.password;
+  // console.log(username, password);
   // });
 
   // special JS page. Include the webpack index.html file

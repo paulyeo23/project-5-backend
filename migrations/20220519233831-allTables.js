@@ -115,7 +115,7 @@ module.exports = {
       },
     });
 
-    await queryInterface.createTable("tableInfo", {
+    await queryInterface.createTable("tableInfos", {
       roundid: {
         allowNull: false,
         autoIncrement: true,
@@ -134,24 +134,28 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      flop1: {
+      raisePosition: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      flop2: {
+      currentPosition: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      flop3: {
+      currentRaise: {
+        allowNull: false,
+        type: Sequelize.FLOAT,
+      },
+      previousRaise: {
+        allowNull: false,
+        type: Sequelize.FLOAT,
+        defaultValue: 0,
+      },
+      gameState: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      turn: {
-        allowNull: false,
-        type: Sequelize.INTEGER,
-      },
-      river: {
-        allowNull: false,
+      nextGame: {
         type: Sequelize.INTEGER,
       },
       createdAt: {
@@ -168,18 +172,18 @@ module.exports = {
       },
     });
 
-    await queryInterface.createTable("deck", {
+    await queryInterface.createTable("decks", {
       roundid: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
-          model: "tableinfo",
+          model: "tableinfos",
           key: "roundid",
         },
       },
       deck: {
         allowNull: false,
-        type: Sequelize.FLOAT,
+        type: Sequelize.STRING,
       },
       deckPosition: {
         allowNull: false,
@@ -199,7 +203,7 @@ module.exports = {
       },
     });
 
-    await queryInterface.createTable("tablePlayer", {
+    await queryInterface.createTable("tablePlayers", {
       handid: {
         allowNull: false,
         autoIncrement: true,
@@ -210,7 +214,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
-          model: "tableinfo",
+          model: "tableinfos",
           key: "roundid",
         },
       },
@@ -222,13 +226,30 @@ module.exports = {
           key: "id",
         },
       },
-      deck: {
-        allowNull: false,
-        type: Sequelize.FLOAT,
-      },
-      deckPosition: {
+      tablePosition: {
         allowNull: false,
         type: Sequelize.INTEGER,
+      },
+      check: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+      folded: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+      stack: {
+        allowNull: false,
+        type: Sequelize.FLOAT,
+        defaultValue: false,
+      },
+      called: {
+        type: Sequelize.FLOAT,
+      },
+      allIn: {
+        type: Sequelize.BOOLEAN,
       },
       createdAt: {
         type: "TIMESTAMP",
@@ -245,10 +266,16 @@ module.exports = {
     });
 
     await queryInterface.createTable("playerHand", {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
+      },
       handid: {
         allowNull: false,
         references: {
-          model: "tablePlayer",
+          model: "tablePlayers",
           key: "handid",
         },
         type: Sequelize.INTEGER,
@@ -256,8 +283,8 @@ module.exports = {
       card: {
         allowNull: false,
         type: Sequelize.INTEGER,
+        defaultValue: 0,
       },
-
       createdAt: {
         type: "TIMESTAMP",
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
@@ -275,9 +302,9 @@ module.exports = {
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("playerHand");
-    await queryInterface.dropTable("tablePlayer");
-    await queryInterface.dropTable("deck");
-    await queryInterface.dropTable("tableInfo");
+    await queryInterface.dropTable("tablePlayers");
+    await queryInterface.dropTable("decks");
+    await queryInterface.dropTable("tableinfos");
     await queryInterface.dropTable("transactions");
     await queryInterface.dropTable("users");
     await queryInterface.dropTable("tables");

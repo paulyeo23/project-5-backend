@@ -2,6 +2,12 @@ export default function initPlayerHandModel(sequelize, DataTypes) {
   return sequelize.define(
     "playerHand",
     {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: DataTypes.INTEGER,
+      },
       handid: {
         allowNull: false,
         references: {
@@ -11,13 +17,12 @@ export default function initPlayerHandModel(sequelize, DataTypes) {
         type: DataTypes.INTEGER,
       },
       card: {
-        allowNull: false,
+        allowNull: true,
         type: DataTypes.INTEGER,
       },
-
     },
     {
       timestamps: false,
     },
   );
-};
+}

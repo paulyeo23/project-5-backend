@@ -1,6 +1,6 @@
-export default  function initTableInfoModel (sequelize, DataTypes) {
+export default function initTableInfoModel(sequelize, DataTypes) {
   return sequelize.define(
-    "tableInfo",
+    "tableInfos",
     {
       roundid: {
         allowNull: false,
@@ -20,24 +20,28 @@ export default  function initTableInfoModel (sequelize, DataTypes) {
         allowNull: false,
         type: DataTypes.INTEGER,
       },
-      flop1: {
+      currentPosition: {
         allowNull: false,
         type: DataTypes.INTEGER,
       },
-      flop2: {
+      raisePosition: {
         allowNull: false,
         type: DataTypes.INTEGER,
       },
-      flop3: {
+      currentRaise: {
+        allowNull: false,
+        type: DataTypes.FLOAT,
+      },
+      previousRaise: {
+        allowNull: false,
+        type: DataTypes.FLOAT,
+        defaultValue: 0,
+      },
+      gameState: {
         allowNull: false,
         type: DataTypes.INTEGER,
       },
-      turn: {
-        allowNull: false,
-        type: DataTypes.INTEGER,
-      },
-      river: {
-        allowNull: false,
+      nextGame: {
         type: DataTypes.INTEGER,
       },
     },
@@ -45,4 +49,4 @@ export default  function initTableInfoModel (sequelize, DataTypes) {
       timestamps: false,
     },
   );
-};
+}

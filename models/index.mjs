@@ -2,10 +2,6 @@ import { Sequelize } from "sequelize";
 import url from "url";
 import allConfig from "../config/config.js";
 
-import itemModel from "./item.mjs";
-import orderModel from "./order.mjs";
-import orderItemModel from "./orderItem.mjs";
-
 import initUsersModel from "./users.mjs";
 
 import initDeckModel from "./deck.mjs";
@@ -58,7 +54,7 @@ db.TablePlayer = initTablePlayerModel(sequelize, Sequelize.DataTypes);
 db.TableInfo = initTableInfoModel(sequelize, Sequelize.DataTypes);
 db.Transactions = initTransactionsModel(sequelize, Sequelize.DataTypes);
 db.Tables = initTablesModel(sequelize, Sequelize.DataTypes);
-
+db.Deck.removeAttribute("id");
 // db.Users.belongsToMany(db.Transactions, { through: 'transactions' });
 // db.Users.belongsToMany(db.TablePlayer, { through: 'tablePlayer' });
 
