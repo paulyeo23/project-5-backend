@@ -27,7 +27,6 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 // Expose the files stored in the public folder
 app.use(express.static("public"));
-
 // Bind route definitions to the Express application
 bindRoutes(app);
 
