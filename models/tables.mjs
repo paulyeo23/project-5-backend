@@ -1,4 +1,4 @@
-export default  function initTablesModel  (sequelize, DataTypes) {
+export default function initTablesModel(sequelize, DataTypes) {
   return sequelize.define(
     "tables",
     {
@@ -7,6 +7,10 @@ export default  function initTablesModel  (sequelize, DataTypes) {
         autoIncrement: true,
         primaryKey: true,
         type: DataTypes.INTEGER,
+      },
+      name: {
+        allowNull: false,
+        type: DataTypes.STRING,
       },
       maxPlayer: {
         allowNull: false,
@@ -30,6 +34,4 @@ export default  function initTablesModel  (sequelize, DataTypes) {
       timestamps: false,
     },
   );
-};
-
-
+}

@@ -1,26 +1,20 @@
 export default function initTableInfoController(db) {
-const tableInfo = {tableInfo:db.TableInfo.findAll()}
+  const tableInfo = { tableInfo: db.TableInfo.findAll() };
 
-  function changePosition(position,maxSeat) {
-    position = (position + 1) % maxSeat
-
-    return position
-  }
-  const index = async (request, response) => {
-    try {
-      const tableInfo = await db.TableInfo.findAll();
-      response.send({ tableInfo });
-    } catch (error) {
-      console.log(error);
-    }
+  const Info = async (request) => {
+    const info = {
+      table: await db.Tables.findAll(),
+      tableInfo: await db.TableInfo.findAll(),
+      allPlayersInRound: await db.TablePlayer.findAll(),
+      deck: await db.Deck.findAll(),
+      users: await db.Users.findAll(),
+    };
+    return info;
   };
 
-  const check = async (request, response) => {
+  const index = async (request, response) => {
     try {
-      const info = tableInfo()
-      if (info.tableInfo.length>0) {
-        tableInfo
-      }
+      Info().then((result) => response.send(result));
     } catch (error) {
       console.log(error);
     }

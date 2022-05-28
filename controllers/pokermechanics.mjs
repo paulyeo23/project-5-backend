@@ -59,9 +59,12 @@ export default function initPokerMechanicsController(db) {
     return true;
   }
 
+
   function roundEnd(info, request) {
     db.TableInfo.update(
       {
+        // pot: function (){ const addToPot = 0
+        //   info.allPlayersInRound.forEach(player =>{player.})}
         currentRaise: 0,
         previousRaise: 0,
         gameState: info.tableInfo[0].gameState + 1,
@@ -111,8 +114,14 @@ export default function initPokerMechanicsController(db) {
 
   function shiftToNextGame(info, request) {}
 
-  function seatPlayer(request){
-    db.TablePlayer.create({})
+  function seatPlayer(info, request) {
+    db.TablePlayer.create({
+      roundid: info.roundid,
+      userid: info.users.filter((user) => {
+        return user.id == request.userid;
+      })[0].id,
+      tablePosition: request.tablePosition,
+    });
   }
 
   function unseatPlayer(request) {
@@ -283,11 +292,40 @@ export default function initPokerMechanicsController(db) {
   const raiseplayer = async (request, response) => {
     try {
       const info = [Info()];
-      Promise.all(info).then(function (results) {
-        const info = results[0];
-        raise(info, request.params);
-      });
-      response.send({ tableInfo });
+      Promise.all(info)
+        .then(function (results) {
+          const info = results[0];
+          raise(info, request.params);
+          uncheckAll(request.params);
+          changePosition(info, request.params.playerposition);
+        })
+        .then((results) => {
+          console.log("respond");
+          Info(request.params).then((result) => {
+            response.send(result);
+          });
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const foldplayer = async (request, response) => {
+    try {
+      const info = [Info()];
+      Promise.all(info)
+        .then(function (results) {
+          const info = results[0];
+          fold(request.params);
+          checkAllFolded(info, request.params);
+          changePosition(info, request.params.playerposition);
+        })
+        .then((results) => {
+          console.log("respond");
+          Info(request.params).then((result) => {
+            response.send(result);
+          });
+        });
     } catch (error) {
       console.log(error);
     }

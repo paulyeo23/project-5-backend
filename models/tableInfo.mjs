@@ -24,6 +24,9 @@ export default function initTableInfoModel(sequelize, DataTypes) {
         allowNull: false,
         type: DataTypes.INTEGER,
       },
+      pot: {
+        type: DataTypes.INTEGER,
+      },
       raisePosition: {
         allowNull: false,
         type: DataTypes.INTEGER,

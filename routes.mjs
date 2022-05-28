@@ -18,7 +18,7 @@ export default function routes(app) {
   // app.get('/items', ItemsController.index);
 
   const TableInfoController = initTableInfoController(db);
-  app.get("/tableinfo", TableInfoController.index);
+  app.get("/gettableinfo", TableInfoController.index);
 
   const PokerMechanicsController = initPokerMechanicsController(db);
   app.get(

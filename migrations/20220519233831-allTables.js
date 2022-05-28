@@ -9,6 +9,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
+      name: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
       maxPlayer: {
         allowNull: false,
         type: Sequelize.INTEGER,
@@ -142,6 +146,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
+      pot: {
+        type: Sequelize.FLOAT,
+      },
       currentRaise: {
         allowNull: false,
         type: Sequelize.FLOAT,
@@ -247,9 +254,11 @@ module.exports = {
       },
       called: {
         type: Sequelize.FLOAT,
+        defaultValue: false,
       },
       allIn: {
         type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
       createdAt: {
         type: "TIMESTAMP",

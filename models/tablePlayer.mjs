@@ -45,9 +45,11 @@ export default function initTablePlayerModel(sequelize, DataTypes) {
       },
       called: {
         type: DataTypes.FLOAT,
+        defaultValue: false,
       },
       allIn: {
         type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
     },
     {
