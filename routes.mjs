@@ -6,7 +6,6 @@ import db from "./models/index.mjs";
 
 import initTableInfoController from "./controllers/tableInfo.mjs";
 import initUsersController from "./controllers/users.mjs";
-import initPokerCheck from "./controllers/pokerCheck.mjs";
 import initPokerMechanicsController from "./controllers/pokermechanics.mjs";
 
 export default function routes(app) {
@@ -25,6 +24,27 @@ export default function routes(app) {
     "/tableinfo/check/:roundid/:tableid/:userid",
     PokerMechanicsController.checkplayer,
   );
+  app.get(
+    "/tableinfo/raise/:roundid/:tableid/:userid/:raisevalue",
+    PokerMechanicsController.raiseplayer,
+  );
+
+  app.get(
+    "/tableinfo/call/:roundid/:tableid/:userid/",
+    PokerMechanicsController.callplayer,
+  );
+
+  app.get(
+    "/tableinfo/fold/:roundid/:tableid/:userid/",
+    PokerMechanicsController.foldplayer,
+  );
+
+  app.get(
+    "/tableinfo/index/:roundid/:tableid/:userid/",
+    PokerMechanicsController.index,
+  );
+
+  app.get("/tableinfo/call/", PokerMechanicsController.index);
 
   const UsersController = initUsersController(db);
   app.get("/users", UsersController.index);

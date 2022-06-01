@@ -274,19 +274,15 @@ module.exports = {
       },
     });
 
-    await queryInterface.createTable("playerHand", {
+    await queryInterface.createTable("communityCards", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      handid: {
+      roundid: {
         allowNull: false,
-        references: {
-          model: "tablePlayers",
-          key: "handid",
-        },
         type: Sequelize.INTEGER,
       },
       card: {
@@ -307,10 +303,44 @@ module.exports = {
         allowNull: false,
       },
     });
+
+    await queryInterface.createTable("playerHands", {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
+      },
+      handid: {
+        allowNull: false,
+        references: {
+          model: "tablePlayers",
+          key: "handid",
+        },
+        type: Sequelize.INTEGER,
+      },
+      card: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      createdAt: {
+        type: "TIMESTAMP",
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        allowNull: false,
+      },
+      updatedAt: {
+        type: "TIMESTAMP",
+        defaultValue: Sequelize.literal(
+          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+        ),
+        allowNull: false,
+      },
+    });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("playerHand");
+    await queryInterface.dropTable("communityCards");
+    await queryInterface.dropTable("playerHands");
     await queryInterface.dropTable("tablePlayers");
     await queryInterface.dropTable("decks");
     await queryInterface.dropTable("tableinfos");

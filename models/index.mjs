@@ -10,6 +10,7 @@ import initTableInfoModel from "./tableInfo.mjs";
 import initTablePlayerModel from "./tablePlayer.mjs";
 import initTablesModel from "./tables.mjs";
 import initTransactionsModel from "./transactions.mjs";
+import initCommunityCardsModel from "./communityCards.mjs";
 
 const env = process.env.NODE_ENV || "development";
 
@@ -54,7 +55,9 @@ db.TablePlayer = initTablePlayerModel(sequelize, Sequelize.DataTypes);
 db.TableInfo = initTableInfoModel(sequelize, Sequelize.DataTypes);
 db.Transactions = initTransactionsModel(sequelize, Sequelize.DataTypes);
 db.Tables = initTablesModel(sequelize, Sequelize.DataTypes);
+db.CommunityCards = initCommunityCardsModel(sequelize, Sequelize.DataTypes);
 db.Deck.removeAttribute("id");
+
 // db.Users.belongsToMany(db.Transactions, { through: 'transactions' });
 // db.Users.belongsToMany(db.TablePlayer, { through: 'tablePlayer' });
 

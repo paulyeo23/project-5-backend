@@ -1,6 +1,6 @@
-export default function initPlayerHandModel(sequelize, DataTypes) {
+export default function initCommunityCardsModel(sequelize, DataTypes) {
   return sequelize.define(
-    "playerHands",
+    "communityCards",
     {
       id: {
         allowNull: false,
@@ -8,17 +8,14 @@ export default function initPlayerHandModel(sequelize, DataTypes) {
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
-      handid: {
+      roundid: {
         allowNull: false,
-        references: {
-          model: "tablePlayer",
-          key: "handid",
-        },
         type: DataTypes.INTEGER,
       },
       card: {
-        allowNull: true,
+        allowNull: false,
         type: DataTypes.INTEGER,
+        defaultValue: 0,
       },
     },
     {
