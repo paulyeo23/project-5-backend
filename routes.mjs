@@ -1,4 +1,6 @@
 import { resolve } from "path";
+import { Server } from "socket.io";
+import { WebSocketServer } from "ws";
 import db from "./models/index.mjs";
 
 // import initItemsController from './controllers/items.mjs';
@@ -7,6 +9,7 @@ import db from "./models/index.mjs";
 import initTableInfoController from "./controllers/tableInfo.mjs";
 import initUsersController from "./controllers/users.mjs";
 import initPokerMechanicsController from "./controllers/pokermechanics.mjs";
+import initPokerLobbyController from "./controllers/pokerLobby.mjs";
 
 export default function routes(app) {
   // const OrdersController = initOrdersController(db);
@@ -39,16 +42,20 @@ export default function routes(app) {
     PokerMechanicsController.foldplayer,
   );
 
-  app.get(
-    "/tableinfo/index/:roundid/:tableid/:userid/",
-    PokerMechanicsController.index,
-  );
+  app.get("/tableinfo/:roundid/:tableid/", PokerMechanicsController.index);
 
   app.get("/tableinfo/call/", PokerMechanicsController.index);
 
+  const PokerLobby = initPokerLobbyController(db);
+  app.get("/lobby", PokerLobby.index);
+  app.get(
+    "/lobby/seatplayer/:roundid/:tableid/:userid/",
+    PokerMechanicsController.sitPlayer,
+  );
+
   const UsersController = initUsersController(db);
   app.get("/users", UsersController.index);
-  app.post("/login", UsersController.login);
+  app.get("/login/:username/:password", UsersController.login);
   app.post("/register", UsersController.register);
   // function (request, response) {
   // let data = request.body;

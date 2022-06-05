@@ -32,16 +32,20 @@ export default function initUsersController(db) {
   };
   const login = async (request, response) => {
     try {
-      let data = request.body;
+      let data = request.params;
+      console.log(data);
       let username = data.username;
       let password = data.password;
-      const users = await db.Users.findAll({
+      await db.Users.findAll({
         where: {
           username: username,
           password: password,
         },
+      }).then((results) => {
+        console.log(results[0]);
+        response.cookie("userid", results[0].id);
+        response.send(results[0]);
       });
-      response.send({ users });
     } catch (error) {
       console.log(error);
     }

@@ -284,10 +284,14 @@ module.exports = {
       roundid: {
         allowNull: false,
         type: Sequelize.INTEGER,
+        references: {
+          model: "tableinfos",
+          key: "roundid",
+        },
       },
       card: {
         allowNull: false,
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         defaultValue: 0,
       },
       createdAt: {

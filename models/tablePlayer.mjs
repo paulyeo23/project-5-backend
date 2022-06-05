@@ -11,18 +11,10 @@ export default function initTablePlayerModel(sequelize, DataTypes) {
       roundid: {
         allowNull: false,
         type: DataTypes.INTEGER,
-        references: {
-          model: "tableinfos",
-          key: "roundid",
-        },
       },
       userid: {
         allowNull: false,
         type: DataTypes.INTEGER,
-        references: {
-          model: "users",
-          key: "id",
-        },
       },
       tablePosition: {
         allowNull: false,

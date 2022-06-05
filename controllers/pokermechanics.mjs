@@ -1,6 +1,8 @@
 import { request } from "https";
 import { deck, shuffle } from "./deck.mjs";
 import pkg from "pokersolver";
+import { Server } from "socket.io";
+import { WebSocketServer } from "ws";
 const { Hand } = pkg;
 
 export default function initPokerMechanicsController(db) {
@@ -28,29 +30,33 @@ export default function initPokerMechanicsController(db) {
     return info;
   };
 
-  function deckToCard(info, position) {
+  function deckToCard(info, deckPosition) {
     const deck = info.deck[0].deck;
-    const card = `${deck[position * 2]}${deck[position * 2 + 1]}`;
+    const card = `${deck[deckPosition * 2]}${deck[deckPosition * 2 + 1]}`;
     // console.log(deck);
     // console.log(position);
     return card;
   }
 
   function changePosition(info, position) {
+    console.log(info);
     // console.log(position);
+    //console.log(info);
     const maxSeat = info.table[0].maxPlayer;
     while (true) {
       position += 1;
-      let newPosition = position % maxSeat;
+      position = position % maxSeat;
       let nextPlayer = info.allPlayersInRound.filter((player) => {
-        return player.tablePosition == newPosition;
+        return player.tablePosition == position;
       })[0];
       if (nextPlayer != undefined) {
+        console.log("nextplayer", nextPlayer.tablePosition, position);
         if (nextPlayer.folded == false || nextplayerIn == false) {
-          return newPosition;
+          break;
         }
       }
     }
+    return position;
   }
 
   function checkRoundEnd(info) {
@@ -70,21 +76,27 @@ export default function initPokerMechanicsController(db) {
 
   async function roundEnd(info, request) {
     function addToPot() {
-      let addToPot = 0;
+      let addToPot = info.tableInfo[0].pot;
       info.allPlayersInRound.forEach((player) => {
         addToPot += player.called;
       });
-      console.log("addToPot", addToPot);
+      //console.log("addToPot", addToPot);
       return addToPot;
     }
-    console.log("info.tableInfo.gameState", info.tableInfo[0].gameState);
+    //console.log("info.tableInfo.gameState", info.tableInfo[0].gameState);
     if (info.tableInfo[0].gameState == 3) {
       info.allPlayersInRound.forEach((player) => {
         info.tableInfo[0].pot += player.called;
       });
       payOut(info, showDown(info));
+      info.tableInfo[0].roundid = info.tableInfo[0].nextGame;
+      roundStart(info);
+      Info(request.params).then((results) => {
+        results.tableInfo[0].roundid = results.tableInfo[0].nextGame;
+        respond.send(results);
+      });
     } else if (info.tableInfo[0].gameState < 3) {
-      console.log("else");
+      //console.log("else");
       db.TableInfo.update(
         {
           // pot: function (){ const addToPot = 0
@@ -109,16 +121,16 @@ export default function initPokerMechanicsController(db) {
         { where: { roundid: request.roundid } },
       );
       if (info.tableInfo[0].gameState == 0) {
-        console.log("dealCommunityCard");
+        // console.log("dealCommunityCard");
         dealCommunityCard(info, request, 3);
       } else {
         await dealCommunityCard(info, request);
       }
-      uncheckAll(request);
+      uncheckAll(info);
     }
   }
 
-  function createNextGame(info, request) {
+  function createNextGame(info) {
     db.TableInfo.create({
       tableid: info.table[0].id,
       currentRaise: 0,
@@ -128,14 +140,21 @@ export default function initPokerMechanicsController(db) {
       dealerPosition: changePosition(info, info.tableInfo[0].dealerPosition),
       currentPosition: changePosition(info, info.tableInfo[0].dealerPosition),
     }).then(function (result) {
+      const shuffledDeck = shuffle(10000).join("").toString();
+
       db.TableInfo.update(
         {
           nextGame: result.roundid,
         },
-        { where: { roundid: request.roundid } },
+        { where: { roundid: info.tableInfo[0].roundid } },
       );
+      db.Deck.create({
+        roundid: result.roundid,
+        deck: shuffledDeck,
+        deckPosition: 0,
+      });
       info.allPlayersInRound.forEach((player) => {
-        console.log("player", player);
+        // console.log("player", player);
         db.TablePlayer.create({
           roundid: result.roundid,
           userid: info.users.filter((user) => {
@@ -147,16 +166,125 @@ export default function initPokerMechanicsController(db) {
     });
   }
 
-  function shiftToNextGame(info, request) {}
-
-  function seatPlayer(info, userid) {
-    db.TablePlayer.create({
-      roundid: info.tableInfo.nextGame,
-      userid: info.users.filter((user) => {
-        return user.id == userid;
-      })[0].id,
-      tablePosition: request.tablePosition,
+  function createDeck(info, roundid) {
+    const shuffledDeck = shuffle(10000).join("").toString();
+    db.Deck.create({
+      roundid: roundid,
+      deck: shuffledDeck,
+      deckPosition: 0,
     });
+  }
+
+  function roundStart(info) {
+    function player(position) {
+      return info.allPlayersInRound.filter((player) => {
+        return player.tablePosition == position;
+      })[0];
+    }
+    info.tableInfo[0].currentPosition = changePosition(
+      info,
+      info.tableInfo[0].currentPosition,
+    );
+    for (let i = 0; i < 2; i++) {
+      info.allPlayersInRound.forEach((x) => {
+        const currentplayerid = player(
+          info.tableInfo[0].currentPosition,
+        ).userid;
+        dealCard(info, currentplayerid, info.deck[0].deckPosition);
+        info.deck[0].deckPosition += 1;
+        info.tableInfo[0].currentPosition = changePosition(
+          info,
+          info.tableInfo[0].currentPosition,
+        );
+      });
+    }
+    db.Deck.update(
+      {
+        deckPosition: info.deck[0].deckPosition,
+      },
+      { where: { roundid: info.tableInfo[0].roundid } },
+    );
+    info.tableInfo[0].currentPosition = changePosition(
+      info,
+      info.tableInfo[0].dealerPosition,
+    );
+
+    console.log(
+      "player(info.tableInfo[0].currentPosition).userid",
+      player(info.tableInfo[0].currentPosition).userid,
+    );
+    raise(
+      info,
+      player(info.tableInfo[0].currentPosition).userid,
+      info.table[0].blinds,
+    );
+    info.tableInfo[0].currentPosition = changePosition(
+      info,
+      info.tableInfo[0].currentPosition,
+    );
+    console.log(
+      "player(info.tableInfo[0].currentPosition).userid",
+      info.tableInfo[0].currentPosition,
+    );
+
+    raise(
+      info,
+      player(info.tableInfo[0].currentPosition).userid,
+      info.table[0].blinds * 2,
+    );
+    info.tableInfo[0].currentPosition = changePosition(
+      info,
+      info.tableInfo[0].currentPosition,
+    );
+    createNextGame(info);
+
+    db.TableInfo.update(
+      {
+        currentPosition: info.tableInfo[0].currentPosition,
+        currentRaise: info.table[0].blinds * 2,
+        previousRaise: info.table[0].blinds,
+      },
+      { where: { roundid: info.tableInfo[0].roundid } },
+    );
+  }
+
+  function nextGameInfo(info) {
+    info.tableInfo[0].roundid = info.tableInfo[0].nextGame;
+  }
+
+  function seatPlayer(info, request) {
+    if (info.allPlayersInRound.length == 0) {
+      db.TablePlayer.create({
+        roundid: request.params.roundid,
+        userid: request.params.userid,
+        tablePosition: 0,
+        stack: 100,
+      }).then((results) => {
+        Info(request.params).then((results) => {
+          response.send(results);
+        });
+      });
+    } else if (info.allPlayersInRound.length > 0)
+      for (let i = 0; i < info.table.maxPlayer; i++) {
+        const tablePosition = i;
+        const playerInPosition = info.allPlayersInRound.filter((player) => {
+          return player == tablePosition;
+        });
+        if (playerInPosition.length == 0) {
+          db.TablePlayer.create({
+            roundid: request.params.roundid,
+            userid: request.params.userid,
+            tablePosition: tableposition,
+            stack: 100,
+          });
+          if (info.allPlayersInRound.length + 1 >= 2) {
+            Info(request.params).then((results) => {
+              response.send(results);
+            });
+            break;
+          }
+        }
+      }
   }
 
   function unseatPlayer(request) {
@@ -190,26 +318,27 @@ export default function initPokerMechanicsController(db) {
     );
   }
 
-  function uncheckAll(request) {
+  function uncheckAll(info) {
     db.TablePlayer.update(
       { check: false },
-      { where: { roundid: request.roundid, allIn: false } },
+      { where: { roundid: info.tableInfo[0].roundid, allIn: false } },
     );
   }
 
-  function raise(info, request) {
+  function raise(info, userid, raisevalue) {
+    console.log("userid", userid);
     const currentPlayer = info.allPlayersInRound.filter((player) => {
-      return player.userid == request.userid;
+      return player.userid == userid;
     })[0];
-    uncheckAll(request);
+    uncheckAll(info);
     db.TablePlayer.update(
       {
         check: true,
-        called: request.raisevalue,
-        stack: currentPlayer.stack - request.raisevalue,
+        called: raisevalue,
+        stack: currentPlayer.stack - raisevalue,
       },
 
-      { where: { roundid: request.roundid, userid: request.userid } },
+      { where: { roundid: info.tableInfo[0].roundid, userid: userid } },
     );
     db.TableInfo.update(
       {
@@ -218,7 +347,7 @@ export default function initPokerMechanicsController(db) {
         previousRaise: info.tableInfo[0].currentRaise,
       },
       {
-        where: { roundid: request.roundid },
+        where: { roundid: info.tableInfo[0].roundid },
       },
     );
   }
@@ -230,10 +359,17 @@ export default function initPokerMechanicsController(db) {
       })[0];
       db.TablePlayer.update(
         {
-          stack: currentPlayer.stack + info.tableInfo[0].pot / winneridList.length,
+          stack:
+            currentPlayer.stack + info.tableInfo[0].pot / winneridList.length,
         },
-        { where: { userid: currentPlayer.userid } },
+        {
+          where: {
+            userid: currentPlayer.userid,
+            roundid: info.tableInfo[0].nextGame,
+          },
+        },
       );
+      // console.log("payout stack", currentPlayer.stack, info.tableInfo[0].pot);
     });
   }
 
@@ -279,25 +415,27 @@ export default function initPokerMechanicsController(db) {
 
       userids.push(hand.userid);
     });
-    console.log("userids", userids);
+    // console.log("userids", userids);
     return userids;
   }
 
-  function dealCard(info, userid, position) {
-    db.PlayerHand.update(
+  function dealCard(info, userid, deckPosition) {
+    const handid = info.allPlayersInRound.filter((player) => {
+      return player.userid == userid;
+    })[0];
+    console.log("handid", handid.handid);
+
+    db.PlayerHand.create(
       {
-        card: deckToCard(info, position),
+        handid: handid.handid,
+        card: deckToCard(info, deckPosition),
       },
       { where: { id: userid } },
-    );
-    db.Deck.update(
-      { deckPosition: position + 1 },
-      { where: { roundid: request.roundid } },
     );
   }
 
   function dealCommunityCard(info, request, repeats = 1) {
-    console.log("info.tableInfo[0].roundid", info.tableInfo[0].roundid);
+    //console.log("info.tableInfo[0].roundid", info.tableInfo[0].roundid);
     for (let i = 1; i < repeats + 1; i++) {
       db.CommunityCards.create({
         roundid: info.tableInfo[0].roundid,
@@ -312,12 +450,9 @@ export default function initPokerMechanicsController(db) {
 
   const checkplayer = async (request, response) => {
     try {
-      console.log(request.params);
-      const info = [Info(request.params)];
+      //console.log(request.params);
 
-      Info(request.params).then(function (results) {
-        const info = results;
-
+      Info(request.params).then(function (info) {
         const currentPlayer = info.allPlayersInRound.filter((player) => {
           return player.userid == request.params.userid;
         })[0];
@@ -326,7 +461,7 @@ export default function initPokerMechanicsController(db) {
           currentPlayer.tablePosition != info.tableInfo[0].currentPosition ||
           currentPlayer.called < info.tableInfo[0].currentRaise
         ) {
-          console.log("False");
+          //console.log("False");
 
           return false;
         }
@@ -373,13 +508,13 @@ export default function initPokerMechanicsController(db) {
 
       //socket emit
     } catch (error) {
-      console.log(error);
+      //console.log(error);
     }
   };
 
   const raiseplayer = async (request, response) => {
     try {
-      console.log(request.params);
+      //console.log(request.params);
       Info(request.params).then(function (results) {
         const info = results;
         const currentPlayer = info.allPlayersInRound.filter((player) => {
@@ -387,10 +522,10 @@ export default function initPokerMechanicsController(db) {
         })[0];
 
         if (currentPlayer.tablePosition != info.tableInfo[0].currentPosition) {
-          console.log("false");
+          //console.log("false");
           return false;
         }
-        raise(info, request.params);
+        raise(info, request.params.userid, request.params.raisevalue);
         db.TableInfo.update(
           {
             currentPosition: changePosition(info, currentPlayer.tablePosition),
@@ -416,11 +551,20 @@ export default function initPokerMechanicsController(db) {
           // console.log("respond");
           Info(request.params).then((result) => {
             response.send(result);
+            socket.emit("message", (data) => {
+              const packet = JSON.parse(data);
+
+              switch (packet.type) {
+                case "gameState":
+                  result;
+                  break;
+              }
+            });
           });
         });
       });
     } catch (error) {
-      console.log(error);
+      //console.log(error);
     }
   };
 
@@ -442,6 +586,12 @@ export default function initPokerMechanicsController(db) {
           if (checkAllFolded(info) == true) {
             roundEnd(info, request.params).then((result) => {
               payOut(info, showDown(info));
+              results.tableInfo[0].roundid = results.tableInfo[0].nextGame;
+              roundStart(info);
+              Info(request.params).then((results) => {
+                results.tableInfo[0].roundid = results.tableInfo[0].nextGame;
+                respond.send(results);
+              });
             });
           }
           if (checkRoundEnd(info) == true) {
@@ -455,7 +605,7 @@ export default function initPokerMechanicsController(db) {
           });
         });
     } catch (error) {
-      console.log(error);
+      //console.log(error);
     }
   };
 
@@ -535,15 +685,66 @@ export default function initPokerMechanicsController(db) {
         }
       });
     } catch (error) {
-      console.log(error);
+      //console.log(error);
+    }
+  };
+
+  const sitPlayer = async (request, response) => {
+    try {
+      Info(request.params).then((info) => {
+        console.log(info);
+        if (info.allPlayersInRound.length == 0) {
+          db.TablePlayer.create({
+            roundid: info.tableInfo[0].roundid,
+            userid: request.params.userid,
+            tablePosition: 0,
+            stack: 100,
+          }).then((results) => {
+            Info(request.params).then((results) => {
+              response.send(results);
+            });
+          });
+        } else if (info.allPlayersInRound.length > 0) {
+          for (let i = 0; i < info.table[0].maxPlayer; i++) {
+            const tablePosition = i;
+            const playerInPosition = info.allPlayersInRound.filter((player) => {
+              return player.tablePosition == tablePosition;
+            });
+            if (playerInPosition.length == 0) {
+              db.TablePlayer.create({
+                roundid: info.tableInfo[0].roundid,
+                userid: request.params.userid,
+                tablePosition: tablePosition,
+                stack: 100,
+              }).then((results) => {
+                if (info.allPlayersInRound.length + 1 >= 2) {
+                  console.log("roundstart");
+                  Info(request.params).then((results) => {
+                    roundStart(results);
+                    Info(request.params).then((result) => {
+                      response.send(result);
+                    });
+                  });
+                }
+              });
+              return;
+            }
+          }
+        }
+      });
+    } catch (error) {
+      //console.log(error);
     }
   };
 
   const index = async (request, response) => {
     try {
-      Info(request.params).then((result) => response.send(result));
+      Info(request.params).then((result) => {
+        roundStart(result);
+        response.send(result);
+      });
     } catch (error) {
-      console.log(error);
+      //console.log(error);
     }
   };
 
@@ -553,5 +754,6 @@ export default function initPokerMechanicsController(db) {
     foldplayer,
     raiseplayer,
     callplayer,
+    sitPlayer,
   };
 }

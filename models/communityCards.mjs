@@ -11,10 +11,14 @@ export default function initCommunityCardsModel(sequelize, DataTypes) {
       roundid: {
         allowNull: false,
         type: DataTypes.INTEGER,
+        references: {
+          model: "tableinfos",
+          key: "roundid",
+        },
       },
       card: {
         allowNull: false,
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         defaultValue: 0,
       },
     },
