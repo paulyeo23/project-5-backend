@@ -1,4 +1,4 @@
-INSERT INTO users(username,password,accountvalue) VALUES ('user1','password1',100),('user2','password2',100);
+INSERT INTO users(username,password,accountvalue) VALUES ('house','password1',100),('user1','password1',100),('user2','password2',100);
 SELECT * FROM DECKs;
 SELECT * FROM playerhand;
 SELECT * FROM tableinfos;

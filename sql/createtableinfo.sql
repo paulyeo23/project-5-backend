@@ -1,4 +1,4 @@
-INSERT INTO tableinfo (tableid,
+INSERT INTO tableinfos (tableid,
 dealerPosition,
 raisePosition,
 currentPosition,
@@ -13,10 +13,10 @@ gamestate) VALUES
 0,
 0);
 
-SELECT * FROM DECK;
+SELECT * FROM DECKs;
 SELECT * FROM playerhand;
-SELECT * FROM tableinfo;
-SELECT * FROM tableplayer;
+SELECT * FROM tableinfos;
+SELECT * FROM tableplayers;
 SELECT * FROM tables;
 SELECT * FROM transactions;
 SELECT * FROM Users

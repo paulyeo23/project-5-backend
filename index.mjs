@@ -3,6 +3,9 @@ import express from "express";
 import methodOverride from "method-override";
 import bindRoutes from "./routes.mjs";
 import cors from "cors";
+import { Server } from "socket.io";
+import { WebSocketServer, WebSocket } from "ws";
+import http, { createServer } from "http";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
@@ -32,4 +35,21 @@ bindRoutes(app);
 
 // Set Express to listen on the given port
 const PORT = process.env.PORT || 3001;
-app.listen(PORT);
+
+app.listen(PORT, () => console.info(`Server running on port: ${PORT}`));
+
+const server = createServer(app);
+const webSocketServer = new WebSocketServer({ server });
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
+server.listen(3002);
+
+webSocketServer.on("connection", (webSocket) => {
+  console.info("Total connected clients:", webSocketServer.clients.size);
+
+  app.locals.clients = webSocketServer.clients;
+});
